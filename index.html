@@ -2,341 +2,574 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Happy Diwali 3D Wishes</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Festive Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  
   <style>
     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
       user-select: none;
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
     }
     body, html {
+      margin: 0;
+      padding: 0;
       width: 100%;
       height: 100vh;
-      height: 100svh;
+      height: 100dvh;
       overflow: hidden;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      background-color: #05020a;
-      color: #fff;
+      background-color: #030008;
+      font-family: 'Poppins', sans-serif;
     }
-    #canvas-container {
-      width: 100%;
-      height: 100vh;
-      height: 100svh;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
+    .font-festive {
+      font-family: 'Cinzel', serif;
     }
-    .ui-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      height: 100svh;
-      z-index: 10;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
+    /* Glow animations */
+    .glow-text {
+      text-shadow: 0 0 15px rgba(255, 180, 50, 0.8), 0 0 30px rgba(255, 100, 0, 0.6), 0 0 45px rgba(255, 215, 0, 0.4);
     }
-    .header {
-      text-align: center;
-      margin-top: 10px;
-      text-shadow: 0 0 15px rgba(255, 180, 50, 0.8), 0 0 30px rgba(255, 100, 0, 0.6);
+    .glow-box {
+      box-shadow: 0 0 25px rgba(255, 165, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.2);
     }
-    .header h1 {
-      font-size: 2.5rem;
-      color: #ffd700;
-      letter-spacing: 2px;
-      margin-bottom: 5px;
+    /* Custom scrollbar for popup if needed */
+    ::-webkit-scrollbar {
+      width: 6px;
     }
-    .header p {
-      font-size: 1.1rem;
-      color: #ffaa44;
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 215, 0, 0.3);
+      border-radius: 3px;
     }
-    .controls-panel {
-      pointer-events: auto;
-      background: rgba(15, 5, 25, 0.75);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 215, 0, 0.4);
-      padding: 12px 24px;
-      border-radius: 30px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    }
-    .btn {
-      background: linear-gradient(135deg, #ff8c00, #ff0055);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
-      pointer-events: auto;
+    /* Touch optimization */
+    button {
       touch-action: manipulation;
     }
-    .btn:active {
-      transform: scale(0.96);
-      box-shadow: 0 2px 10px rgba(255, 140, 0, 0.7);
-    }
-    @media (max-width: 600px) {
-      .header h1 { font-size: 1.8rem; }
-      .header p { font-size: 0.95rem; }
-      .controls-panel { margin-bottom: 35px; }
-      .btn { padding: 14px 28px; font-size: 1.05rem; }
-    }
   </style>
+
+  <!-- Three.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls for full 3D interactive camera controls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
-<body>
-  <div id="canvas-container"></div>
-  
-  <div class="ui-overlay">
-    <div class="header">
-      <h1>🪔 Happy Diwali 🪔</h1>
-      <p>Wishing you light, joy, and prosperity!</p>
+<body class="relative w-full h-[100dvh] text-white overflow-hidden">
+
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container" class="absolute inset-0 w-full h-[100dvh] z-0 cursor-grab active:cursor-grabbing"></div>
+
+  <!-- UI Overlay -->
+  <div class="relative z-10 w-full h-[100dvh] pointer-events-none flex flex-col justify-between p-3 sm:p-4 md:p-8">
+    
+    <!-- Header Section -->
+    <header class="text-center mt-1 sm:mt-2 md:mt-4 pointer-events-auto transition-all duration-500 transform hover:scale-105 px-2">
+      <div class="inline-block bg-black/40 backdrop-blur-md border border-amber-500/40 rounded-full px-3 py-1 sm:px-6 sm:py-2 mb-1 sm:mb-2 glow-box">
+        <span class="text-[10px] sm:text-xs md:text-sm tracking-widest text-amber-300 font-semibold uppercase">🪔 Festival of Lights 🪔</span>
+      </div>
+      <h1 id="diwali-heading" class="font-festive text-2xl sm:text-4xl md:text-6xl font-extrabold text-amber-300 glow-text tracking-wide drop-shadow-lg leading-tight">
+        Happy Diwali
+      </h1>
+      <p id="diwali-sub" class="text-xs sm:text-sm md:text-lg text-amber-100/90 mt-1 sm:mt-2 max-w-xl mx-auto font-light drop-shadow px-2">
+        May the divine light fill your life with peace, prosperity, health, and joy!
+      </p>
+    </header>
+
+    <!-- Interactive Hint Overlay -->
+    <div class="text-center my-auto pointer-events-none opacity-60 transition-opacity duration-1000 hidden sm:block" id="drag-hint">
+      <p class="text-[11px] sm:text-xs tracking-widest text-amber-200/80 uppercase">✨ Drag to rotate 3D Diya • Scroll to zoom ✨</p>
     </div>
 
-    <div class="controls-panel">
-      <button class="btn" id="lightup-btn" onclick="triggerGrandCelebration()">Grand Light Up 🪔</button>
+    <!-- Notification Toast -->
+    <div id="toast" class="self-center bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-2xl border border-yellow-300/50 transform -translate-y-10 opacity-0 transition-all duration-300 pointer-events-auto flex items-center gap-2 text-xs sm:text-base my-auto">
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span id="toast-message">Grand Festival Celebration Started!</span>
     </div>
+
+    <!-- Controls Panel -->
+    <footer class="w-full max-w-xl mx-auto pointer-events-auto mb-1 sm:mb-2 md:mb-4 px-2">
+      <div class="bg-black/60 backdrop-blur-xl border border-amber-500/30 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 md:p-5 glow-box shadow-2xl flex flex-row items-center justify-center gap-2 sm:gap-3">
+        
+        <!-- Grand Celebration Light Up Button -->
+        <button 
+          onclick="triggerGrandCelebration()" 
+          class="flex-1 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 hover:from-amber-300 hover:to-orange-400 active:scale-95 text-white font-bold py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl text-xs sm:text-sm md:text-base transition-all duration-300 shadow-xl flex items-center justify-center gap-1.5 sm:gap-2 border border-amber-200/50 uppercase tracking-wide"
+        >
+          <span class="text-sm sm:text-lg">🪔</span>
+          <span class="whitespace-nowrap">Grand Light Up!</span>
+          <span class="text-sm sm:text-lg hidden xs:inline">✨</span>
+        </button>
+
+        <!-- Burst Fireworks Button -->
+        <button 
+          onclick="triggerFireworksBurst()" 
+          class="flex-1 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:from-purple-500 hover:to-red-400 active:scale-95 text-white font-bold py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl text-xs sm:text-sm md:text-base transition-all duration-300 shadow-xl flex items-center justify-center gap-1.5 sm:gap-2 border border-pink-300/40 uppercase tracking-wide"
+        >
+          <span class="text-sm sm:text-lg">🎆</span>
+          <span class="whitespace-nowrap">Fireworks</span>
+        </button>
+
+      </div>
+    </footer>
   </div>
 
   <script>
+    // --- Parse URL Parameters for Personalized Greeting ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const friendName = urlParams.get('name');
+    if (friendName) {
+      const decodedName = decodeURIComponent(friendName);
+      document.getElementById('diwali-heading').innerText = `Happy Diwali, ${decodedName}!`;
+      document.getElementById('diwali-sub').innerText = `Sending you heartfelt light, endless warmth, and prosperous blessings!`;
+    }
+
+    // --- Three.js Scene Setup ---
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05020a, 0.03);
+    scene.fog = new THREE.FogExp2(0x030008, 0.035);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 3, 10);
-    camera.lookAt(0, 1, 0);
+    // Camera Configuration
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 3.5, 9);
 
+    // WebGL Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0x221133, 1.5);
+    // OrbitControls for interactive 3D rotation & zoom
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05; // Keep camera above ground level
+    controls.minDistance = 4;
+    controls.maxDistance = 18;
+    controls.target.set(0, 0.8, 0);
+
+    // Hide drag hint after first interaction
+    controls.addEventListener('start', () => {
+      const hint = document.getElementById('drag-hint');
+      if (hint) hint.style.opacity = '0';
+    });
+
+    // --- Lighting Architecture ---
+    // Soft Ambient Warmth
+    const ambientLight = new THREE.AmbientLight(0x2d1436, 1.2);
     scene.add(ambientLight);
 
-    const goldLight = new THREE.PointLight(0xffaa00, 2, 20);
-    goldLight.position.set(0, 4, 2);
-    scene.add(goldLight);
+    // Main Warm Flame Light (Dynamic Light)
+    const flameLight = new THREE.PointLight(0xffaa11, 4, 15);
+    flameLight.castShadow = true;
+    flameLight.shadow.bias = -0.002;
+    flameLight.position.set(0, 1.2, 0);
+    scene.add(flameLight);
 
-    function createDiya() {
+    // Secondary Accent Light for Brass Reflections
+    const rimLight = new THREE.DirectionalLight(0xff7700, 1.5);
+    rimLight.position.set(5, 8, -5);
+    scene.add(rimLight);
+
+    // Soft Overhead Gold Fill Light
+    const topLight = new THREE.PointLight(0xffdd66, 1, 10);
+    topLight.position.set(0, 6, 2);
+    scene.add(topLight);
+
+    // --- 3D Diya (Traditional Brass Oil Lamp) Builder ---
+    function build3DDiya() {
       const diyaGroup = new THREE.Group();
 
-      const points = [];
-      for (let i = 0; i <= 10; i++) {
-        const x = Math.sin(i * 0.15) * 1.5 + 0.1;
-        const y = (i * 0.12) - 0.5;
-        points.push(new THREE.Vector2(x, y));
-      }
-      const bowlGeo = new THREE.LatheGeometry(points, 32);
-      const bowlMat = new THREE.MeshStandardMaterial({
-        color: 0xcd7f32,
-        metalness: 0.7,
-        roughness: 0.3,
-        emissive: 0x331100
+      // Lathe Profile Geometry for authentic curved Diya shape
+      const lathePoints = [];
+      lathePoints.push(new THREE.Vector2(0, 0));
+      lathePoints.push(new THREE.Vector2(0.4, 0.05));
+      lathePoints.push(new THREE.Vector2(1.2, 0.2));
+      lathePoints.push(new THREE.Vector2(1.8, 0.6));
+      lathePoints.push(new THREE.Vector2(1.7, 0.85));
+      lathePoints.push(new THREE.Vector2(1.4, 0.9));
+      lathePoints.push(new THREE.Vector2(0.3, 0.35));
+      lathePoints.push(new THREE.Vector2(0, 0.32));
+
+      const bowlGeo = new THREE.LatheGeometry(lathePoints, 48);
+      const brassMaterial = new THREE.MeshStandardMaterial({
+        color: 0xd4af37, // Royal Golden Brass
+        metalness: 0.85,
+        roughness: 0.25,
+        emissive: 0x3a2200,
+        emissiveIntensity: 0.2
       });
-      const bowl = new THREE.Mesh(bowlGeo, bowlMat);
-      bowl.scale.set(1, 0.7, 1);
-      diyaGroup.add(bowl);
 
-      const flameGeo = new THREE.ConeGeometry(0.35, 1.2, 16);
-      const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-      const flame = new THREE.Mesh(flameGeo, flameMat);
-      flame.position.set(0, 0.5, 0);
-      diyaGroup.add(flame);
+      const bowlMesh = new THREE.Mesh(bowlGeo, brassMaterial);
+      bowlMesh.castShadow = true;
+      bowlMesh.receiveShadow = true;
+      bowlMesh.scale.set(1, 0.75, 1);
+      diyaGroup.add(bowlMesh);
 
-      const flameLight = new THREE.PointLight(0xff7700, 3, 8);
-      flameLight.position.set(0, 0.6, 0);
-      diyaGroup.add(flameLight);
+      // Decorative Rim Ring
+      const rimGeo = new THREE.TorusGeometry(1.72, 0.06, 16, 64);
+      const rimMesh = new THREE.Mesh(rimGeo, brassMaterial);
+      rimMesh.rotation.x = Math.PI / 2;
+      rimMesh.position.y = 0.6;
+      diyaGroup.add(rimMesh);
 
-      return { group: diyaGroup, flame: flame, light: flameLight };
+      // Traditional Cotton Wick
+      const wickGeo = new THREE.CylinderGeometry(0.04, 0.07, 0.6, 12);
+      const wickMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+      const wick = new THREE.Mesh(wickGeo, wickMat);
+      wick.position.set(0, 0.55, 0);
+      wick.rotation.z = -0.15;
+      diyaGroup.add(wick);
+
+      // Multilayered Flame (Inner Core + Outer Glow)
+      const flameGroup = new THREE.Group();
+      flameGroup.position.set(-0.04, 0.85, 0);
+
+      // Outer Flame Cone
+      const outerFlameGeo = new THREE.ConeGeometry(0.28, 1.1, 32);
+      outerFlameGeo.translate(0, 0.55, 0);
+      const outerFlameMat = new THREE.MeshBasicMaterial({
+        color: 0xff6600,
+        transparent: true,
+        opacity: 0.85
+      });
+      const outerFlame = new THREE.Mesh(outerFlameGeo, outerFlameMat);
+      flameGroup.add(outerFlame);
+
+      // Inner Flame Core
+      const innerFlameGeo = new THREE.ConeGeometry(0.14, 0.75, 32);
+      innerFlameGeo.translate(0, 0.38, 0);
+      const innerFlameMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const innerFlame = new THREE.Mesh(innerFlameGeo, innerFlameMat);
+      flameGroup.add(innerFlame);
+
+      diyaGroup.add(flameGroup);
+
+      return {
+        group: diyaGroup,
+        flameGroup: flameGroup,
+        outerFlame: outerFlame,
+        innerFlame: innerFlame
+      };
     }
 
-    const mainDiya = createDiya();
-    mainDiya.group.position.set(0, 0, 0);
-    scene.add(mainDiya.group);
+    const diya = build3DDiya();
+    scene.add(diya.group);
 
-    const floorGeo = new THREE.PlaneGeometry(30, 30);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a0314, roughness: 0.8 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.6;
-    scene.add(floor);
+    // --- Rangoli Decorative Floor Pedestal ---
+    function buildRangoliFloor() {
+      const floorGroup = new THREE.Group();
 
-    const particleCount = 180;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
+      // Dark Reflective Base Floor
+      const floorGeo = new THREE.PlaneGeometry(40, 40);
+      const floorMat = new THREE.MeshStandardMaterial({
+        color: 0x05010a,
+        roughness: 0.4,
+        metalness: 0.6
+      });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = 0;
+      floor.receiveShadow = true;
+      floorGroup.add(floor);
 
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 20;
-      positions[i + 1] = Math.random() * 10;
-      positions[i + 2] = (Math.random() - 0.5) * 20;
+      // Glowing Geometric Rangoli Disc
+      const rangoliGeo = new THREE.RingGeometry(0.2, 3.8, 64);
+      const rangoliMat = new THREE.MeshBasicMaterial({
+        color: 0xff8800,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.25
+      });
+      const rangoli = new THREE.Mesh(rangoliGeo, rangoliMat);
+      rangoli.rotation.x = -Math.PI / 2;
+      rangoli.position.y = 0.01;
+      floorGroup.add(rangoli);
 
-      colors[i] = 1.0;
-      colors[i + 1] = 0.6 + Math.random() * 0.4;
-      colors[i + 2] = 0.1;
+      // Secondary Concentric Pattern Ring
+      const ring2Geo = new THREE.RingGeometry(2.2, 2.3, 48);
+      const ring2Mat = new THREE.MeshBasicMaterial({
+        color: 0xffd700,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.4
+      });
+      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+      ring2.rotation.x = -Math.PI / 2;
+      ring2.position.y = 0.015;
+      floorGroup.add(ring2);
+
+      return floorGroup;
     }
 
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    scene.add(buildRangoliFloor());
 
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.15,
-      vertexColors: true,
+    // --- Floating Golden Light Sparkles (Ambient Particles) ---
+    const sparklesCount = 250;
+    const sparklesGeo = new THREE.BufferGeometry();
+    const sparklesPos = new Float32Array(sparklesCount * 3);
+    const sparklesSpeed = new Float32Array(sparklesCount);
+
+    for (let i = 0; i < sparklesCount; i++) {
+      sparklesPos[i * 3] = (Math.random() - 0.5) * 22;
+      sparklesPos[i * 3 + 1] = Math.random() * 12;
+      sparklesPos[i * 3 + 2] = (Math.random() - 0.5) * 22;
+      sparklesSpeed[i] = 0.005 + Math.random() * 0.012;
+    }
+
+    sparklesGeo.setAttribute('position', new THREE.BufferAttribute(sparklesPos, 3));
+    const sparklesMat = new THREE.PointsMaterial({
+      color: 0xffc837,
+      size: 0.12,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
     });
-    const sparkles = new THREE.Points(particleGeo, particleMat);
-    scene.add(sparkles);
+    const sparklesSystem = new THREE.Points(sparklesGeo, sparklesMat);
+    scene.add(sparklesSystem);
 
-    let fireworks = [];
-    function triggerFireworks() {
-      const count = 50;
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count * 3);
-      const vel = [];
+    // --- Floating Sky Lanterns (Kandyls) System ---
+    let skyLanterns = [];
+    
+    function createLanternMesh() {
+      const lanternGroup = new THREE.Group();
       
-      const originX = (Math.random() - 0.5) * 10;
-      const originY = 3 + Math.random() * 4;
-      const originZ = (Math.random() - 0.5) * 6;
-      const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
+      // Main Paper Cylinder Body
+      const bodyGeo = new THREE.CylinderGeometry(0.35, 0.28, 0.8, 16);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0xff7711,
+        emissive: 0xff4400,
+        emissiveIntensity: 0.8,
+        roughness: 0.3,
+        transparent: true,
+        opacity: 0.9
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      lanternGroup.add(body);
 
-      for (let i = 0; i < count; i++) {
-        pos[i * 3] = originX;
-        pos[i * 3 + 1] = originY;
-        pos[i * 3 + 2] = originZ;
+      // Inner Light Source
+      const lanternLight = new THREE.PointLight(0xffaa22, 1.5, 4);
+      lanternGroup.add(lanternLight);
 
+      return lanternGroup;
+    }
+
+    function spawnSkyLantern() {
+      const lantern = createLanternMesh();
+      const rx = (Math.random() - 0.5) * 26;
+      const rz = (Math.random() - 0.5) * 16 - 3;
+      lantern.position.set(rx, -1, rz);
+      
+      const speedY = 0.02 + Math.random() * 0.025;
+      const swayFreq = 1 + Math.random() * 2;
+      
+      scene.add(lantern);
+      skyLanterns.push({ group: lantern, speedY: speedY, swayFreq: swayFreq, initialX: rx, life: 1.0 });
+    }
+
+    // --- Interactive Fireworks Particle System ---
+    let fireworksArray = [];
+
+    function createFireworkExplosion(x, y, z, customColor) {
+      const particleCount = 70;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(particleCount * 3);
+      const velocities = [];
+
+      const color = customColor || new THREE.Color().setHSL(Math.random(), 0.95, 0.6);
+
+      for (let i = 0; i < particleCount; i++) {
+        pos[i * 3] = x;
+        pos[i * 3 + 1] = y;
+        pos[i * 3 + 2] = z;
+
+        // Spherical explosion velocity vector
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.random() * Math.PI;
-        const speed = 0.05 + Math.random() * 0.08;
+        const speed = 0.08 + Math.random() * 0.12;
 
-        vel.push({
+        velocities.push({
           x: Math.sin(phi) * Math.cos(theta) * speed,
-          y: Math.cos(phi) * speed,
+          y: Math.cos(phi) * speed + 0.02,
           z: Math.sin(phi) * Math.sin(theta) * speed
         });
       }
 
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({ size: 0.12, color: color, transparent: true });
+
+      const mat = new THREE.PointsMaterial({
+        size: 0.16,
+        color: color,
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending
+      });
+
       const pSystem = new THREE.Points(geo, mat);
       scene.add(pSystem);
 
-      fireworks.push({ system: pSystem, vel: vel, life: 1.0 });
-    }
-
-    let lanterns = [];
-    function spawnLantern() {
-      const lanternGroup = new THREE.Group();
-      const bodyGeo = new THREE.CylinderGeometry(0.2, 0.25, 0.5, 8);
-      const bodyMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.85 });
-      const body = new THREE.Mesh(bodyGeo, bodyMat);
-      lanternGroup.add(body);
-
-      const light = new THREE.PointLight(0xffaa00, 1.5, 3);
-      lanternGroup.add(light);
-
-      lanternGroup.position.set((Math.random() - 0.5) * 12, -1, (Math.random() - 0.5) * 10 - 2);
-      scene.add(lanternGroup);
-
-      lanterns.push({
-        group: lanternGroup,
-        speed: 0.02 + Math.random() * 0.02,
-        sway: Math.random() * 10
+      fireworksArray.push({
+        system: pSystem,
+        velocities: velocities,
+        life: 1.0,
+        decay: 0.015 + Math.random() * 0.01
       });
     }
 
-    function triggerGrandCelebration() {
-      for (let i = 0; i < 6; i++) {
-        setTimeout(triggerFireworks, i * 200);
+    function triggerFireworksBurst() {
+      // Trigger multiple synchronized bursts
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+          const rx = (Math.random() - 0.5) * 14;
+          const ry = 4 + Math.random() * 5;
+          const rz = (Math.random() - 0.5) * 10 - 2;
+          createFireworkExplosion(rx, ry, rz);
+        }, i * 250);
       }
-      for (let i = 0; i < 5; i++) {
-        setTimeout(spawnLantern, i * 300);
-      }
-      
-      let flashCount = 0;
-      const interval = setInterval(() => {
-        mainDiya.light.intensity = flashCount % 2 === 0 ? 8 : 2.5;
-        flashCount++;
-        if (flashCount > 5) clearInterval(interval);
-      }, 100);
     }
 
-    let clock = new THREE.Clock();
+    // --- Grand Light Up Celebration Event ---
+    function triggerGrandCelebration() {
+      // 1. Show Toast Notification
+      showToast("✨ Grand Diwali Light Up Celebration Started! ✨");
+
+      // 2. Launch 12 Sky Lanterns
+      for (let i = 0; i < 12; i++) {
+        setTimeout(() => {
+          spawnSkyLantern();
+        }, i * 300);
+      }
+
+      // 3. Trigger Massive Multi-Stage Fireworks Show
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+          const rx = (Math.random() - 0.5) * 18;
+          const ry = 4.5 + Math.random() * 4.5;
+          const rz = (Math.random() - 0.5) * 12 - 2;
+          createFireworkExplosion(rx, ry, rz);
+        }, i * 200);
+      }
+
+      // 4. Dynamic Lighting Pulse
+      const originalIntensity = flameLight.intensity;
+      flameLight.intensity = 15;
+      topLight.intensity = 6;
+      
+      setTimeout(() => {
+        flameLight.intensity = originalIntensity;
+        topLight.intensity = 1;
+      }, 1500);
+    }
+
+    // Automatic periodic background fireworks
+    setInterval(() => {
+      const rx = (Math.random() - 0.5) * 16;
+      const ry = 5 + Math.random() * 4;
+      const rz = (Math.random() - 0.5) * 12 - 2;
+      createFireworkExplosion(rx, ry, rz);
+    }, 2800);
+
+    // --- Animation & Render Loop ---
+    const clock = new THREE.Clock();
+
     function animate() {
       requestAnimationFrame(animate);
-      const time = clock.getElapsedTime();
+      const elapsedTime = clock.getElapsedTime();
 
-      mainDiya.group.rotation.y = time * 0.5;
-      mainDiya.flame.scale.x = 1 + Math.sin(time * 12) * 0.1;
-      mainDiya.flame.scale.z = 1 + Math.cos(time * 10) * 0.1;
-      mainDiya.light.intensity = 2.5 + Math.sin(time * 15) * 0.5;
+      // 1. Orbit Controls Update
+      controls.update();
 
-      const pos = sparkles.geometry.attributes.position.array;
-      for (let i = 1; i < particleCount * 3; i += 3) {
-        pos[i] -= 0.01;
-        if (pos[i] < 0) pos[i] = 10;
+      // 2. Diya Dynamic Flame Flicker & Micro Movements
+      const flicker = Math.sin(elapsedTime * 18) * 0.08 + Math.cos(elapsedTime * 25) * 0.05;
+      if (flameLight.intensity < 10) {
+        flameLight.intensity = 3.8 + flicker * 2;
       }
-      sparkles.geometry.attributes.position.needsUpdate = true;
+      
+      diya.flameGroup.scale.x = 1 + flicker * 0.3;
+      diya.flameGroup.scale.z = 1 + flicker * 0.3;
+      diya.flameGroup.scale.y = 1 + Math.sin(elapsedTime * 12) * 0.1;
+      diya.flameGroup.rotation.y = elapsedTime * 2;
 
-      for (let l = lanterns.length - 1; l >= 0; l--) {
-        const lan = lanterns[l];
-        lan.group.position.y += lan.speed;
-        lan.group.position.x += Math.sin(time + lan.sway) * 0.005;
-        if (lan.group.position.y > 15) {
-          scene.remove(lan.group);
-          lanterns.splice(l, 1);
+      // Gentle floating rotation of diya base
+      diya.group.rotation.y = elapsedTime * 0.15;
+
+      // 3. Floating Sparkles Particle Upkeep
+      const sparkPositions = sparklesSystem.geometry.attributes.position.array;
+      for (let i = 0; i < sparklesCount; i++) {
+        sparkPositions[i * 3 + 1] -= sparklesSpeed[i];
+        if (sparkPositions[i * 3 + 1] < 0) {
+          sparkPositions[i * 3 + 1] = 12;
+        }
+      }
+      sparklesSystem.geometry.attributes.position.needsUpdate = true;
+
+      // 4. Update Sky Lanterns
+      for (let l = skyLanterns.length - 1; l >= 0; l--) {
+        const lantern = skyLanterns[l];
+        lantern.group.position.y += lantern.speedY;
+        lantern.group.position.x = lantern.initialX + Math.sin(elapsedTime * lantern.swayFreq) * 0.6;
+        lantern.group.rotation.y += 0.01;
+
+        // Fade out and remove high up
+        if (lantern.group.position.y > 18) {
+          scene.remove(lantern.group);
+          skyLanterns.splice(l, 1);
         }
       }
 
-      for (let f = fireworks.length - 1; f >= 0; f--) {
-        const fw = fireworks[f];
+      // 5. Update Fireworks Explosions
+      for (let f = fireworksArray.length - 1; f >= 0; f--) {
+        const fw = fireworksArray[f];
         const positions = fw.system.geometry.attributes.position.array;
-        fw.life -= 0.025;
+        fw.life -= fw.decay;
 
-        for (let i = 0; i < fw.vel.length; i++) {
-          positions[i * 3] += fw.vel[i].x;
-          positions[i * 3 + 1] += fw.vel[i].y - 0.002;
-          positions[i * 3 + 2] += fw.vel[i].z;
+        for (let i = 0; i < fw.velocities.length; i++) {
+          positions[i * 3] += fw.velocities[i].x;
+          positions[i * 3 + 1] += fw.velocities[i].y - 0.003;
+          positions[i * 3 + 2] += fw.velocities[i].z;
         }
+
         fw.system.geometry.attributes.position.needsUpdate = true;
-        fw.system.material.opacity = fw.life;
+        fw.system.material.opacity = Math.max(0, fw.life);
 
         if (fw.life <= 0) {
           scene.remove(fw.system);
-          fireworks.splice(f, 1);
+          fw.system.geometry.dispose();
+          fw.system.material.dispose();
+          fireworksArray.splice(f, 1);
         }
       }
 
+      // Render Scene
       renderer.render(scene, camera);
     }
 
+    // --- Responsive Window Handling ---
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    setInterval(triggerFireworks, 3000);
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      if (msg) document.getElementById('toast-message').innerText = msg;
+      toast.classList.remove('opacity-0', '-translate-y-10');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-10');
+      }, 3500);
+    }
+
+    // Launch initial celebratory fireworks & start animation loop
+    triggerFireworksBurst();
     animate();
   </script>
 </body>
